@@ -7,7 +7,8 @@ class App extends Component {
   constructor(props){
     super(props);
     this.state = {
-      data: []
+      data: [],
+      search: ''
     }
   }
 
@@ -38,10 +39,13 @@ class App extends Component {
   }
 
   renderContent = () => {
+    let filteredBooks = this.state.data.filter((res) => {
+      return res.volumeInfo.title.toLowerCase().indexOf(this.state.search.toLowerCase()) !== -1;
+    });
     return(
       <div className="App-card">
         {
-          this.state.data.map ((res, id) => {
+          filteredBooks.map ((res, id) => {
             return(
               <div key={id} style={{marginBottom: 20, marginRight: 20}}>
                 <img style={{width: 150, height: 200}} src={res.volumeInfo.imageLinks.thumbnail} alt="blank" />
@@ -56,10 +60,16 @@ class App extends Component {
     );
   }
 
+  onSearch = (text) => {
+    this.setState({search: text.target.value.substr(0, 60)});
+    console.log('text', this.state.search);
+  }
 
   render() {
     return (
       <div style={{margin: 20}}>
+        <input type="text" value={this.state.search} onChange={(text)=>this.onSearch(text)}
+          style={{fontSize: 18,  width: '20%', marginBottom: 20}} />
         { this.renderContent() }
       </div>
     );
