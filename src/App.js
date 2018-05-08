@@ -7,19 +7,24 @@ class App extends Component {
   constructor(props){
     super(props);
     this.state = {
-      data: [],
-      search: ''
+      data: []
     }
   }
 
-  componentDidMount(){
-    let url = `https://www.googleapis.com/books/v1/volumes?q=harry%20potter`;
+  componentWillMount(){
+    this.search();
+  }
+
+  search = (query = "harry potter") => {
+    let url = `https://www.googleapis.com/books/v1/volumes?q=${query}`;
     API.get(url).then((res) => {
-      this.setState({
-        data: res.items,
-      });
-      console.log("DATA", res);
+      this.setState({data: res.items});
+      console.log(res);
     })
+  }
+
+  updateSearch = () => {
+    this.search(this.refs.query.value);
   }
 
   onCheckSale = (data) => {
@@ -38,37 +43,41 @@ class App extends Component {
     }
   }
 
-  renderContent = () => {
-    let filteredBooks = this.state.data.filter((res) => {
-      return res.volumeInfo.title.toLowerCase().indexOf(this.state.search.toLowerCase()) !== -1;
-    });
-    return(
-      <div className="App-card">
-        {
-          filteredBooks.map ((res, id) => {
-            return(
-              <div key={id} style={{marginBottom: 20, marginRight: 20}}>
-                <img style={{width: 150, height: 200}} src={res.volumeInfo.imageLinks.thumbnail} alt="blank" />
-                <p className="App-title" style={{width: 200}}>{res.volumeInfo.title}</p>
-                <p className="App-mutedText" style={{width: 200}}>{res.volumeInfo.authors}</p>
-                {this.onCheckSale(res)}
-              </div>
-            )
-         })
-        }
-      </div>
-    );
+  onCheckImage = (data) => {
+    if(data.volumeInfo.imageLinks !== undefined){
+      return(
+        <img style={{width: 150, height: 200}} src={data.volumeInfo.imageLinks.thumbnail} alt="blank" />
+      )
+    } else {
+      return null
+    }
   }
 
-  onSearch = (text) => {
-    this.setState({search: text.target.value.substr(0, 60)});
-    console.log('text', this.state.search);
+  renderContent = () => {
+    if(this.state.data){
+      return(
+        <div className="App-card">
+          {
+            this.state.data.map ((res, id) => {
+              return(
+                <div key={id} style={{marginBottom: 20, marginRight: 20}}>
+                  {this.onCheckImage(res)}
+                  <p className="App-title" style={{width: 200}}>{res.volumeInfo.title}</p>
+                  <p className="App-mutedText" style={{width: 200}}>{res.volumeInfo.authors}</p>
+                  {this.onCheckSale(res)}
+                </div>
+              )
+           })
+          }
+        </div>
+      );
+    }
   }
 
   render() {
     return (
       <div style={{margin: 20}}>
-        <input type="text" value={this.state.search} onChange={(text)=>this.onSearch(text)}
+        <input type="text" ref="query" onChange={() => this.updateSearch()}
           style={{fontSize: 18,  width: '20%', marginBottom: 20}} />
         { this.renderContent() }
       </div>
